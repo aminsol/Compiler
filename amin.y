@@ -1,10 +1,15 @@
 %{
 #include <iostream>
+#include <fstream>
 #include <string>
+#define YYSTYPE std::string
+#include <stdio.h>
 using namespace std;
  
 extern int yylex();
 extern int yyparse();
+extern FILE *yyin;
+extern FILE *yyout;
  
 void yyerror(const char *str)
 {
@@ -16,32 +21,48 @@ int yywrap()
         return 1;
 } 
   
-int main(){
-        yyparse();
+int main(int argc, char *argv[]) {
+	ifstream input;
+	FILE *yyout;
+	if (argc == 1) {
+		yyparse();
+	}
+	else if(argc == 2){
+		yyin = fopen(argv[1], "r");
+		yyout = fopen("out.cpp","w");
+		yyparse();
+		fclose(yyout);
+	}
 } 
 
 %}
 
-%token PROGRAM VARIABLE VARKEYWORD LISTVARIABLE TYPE CODEBEGIN OPERATOR END PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING
+%token PROGRAM VARIABLE VARKEYWORD LISTVARIABLE TYPE CODEBEGIN  
+%token PLUS MINUS DEVIDE MULTIPLY EQUAL
+%token END PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING
 
 %%
 
 commands: /* empty */
-        | commands command
+		| commands command
         ;
 
 command:
-        program_start
+        variable_define SEMICOLON
         |
-        variable_define
+        program_start SEMICOLON
         |
-        program_begin
+        operation SEMICOLON
         |
-        operation
-        |
-        print
-        |
-        end
+		equal SEMICOLON
+		|
+        print SEMICOLON
+		| 
+		program_end
+		| 
+		program_begin
+        | 
+		
         ;
 		
 variablelist:
@@ -53,7 +74,7 @@ variablelist:
 program_start:
         PROGRAM VARIABLE
         {
-                cout << "Program Name!" << endl;
+                cout << "Program Name is: " << $2 << endl;
         }
         ;
 
@@ -69,12 +90,51 @@ program_begin:
         {
                 cout << "Program begins" << endl;
         }
-        ;
+        ;	
 		
 operation:
-        VARIABLE OPERATOR VARIABLE
+        addition
+		|
+		division
+		|
+		subtraction
+		|
+		multiplication
+		|
+		value
+        ;
+	
+equal:
+        VARIABLE EQUAL operation{
+			cout << $1 << " Equal to " <<  $3 << endl;
+		}
+        ;
+	
+addition:
+        value PLUS operation
         {
-                cout << "operation" << endl;
+                cout << $1 << " Addition " <<  $3 << endl;
+        }
+        ;
+		
+subtraction:
+        value MINUS operation
+        {
+                cout << $1 << " Subtraction " <<  $3 << endl;
+        }
+        ;
+		
+multiplication:
+        value MULTIPLY operation
+        {
+                cout << $1 << " Multiplication " << $3 << endl;
+        }
+        ;
+		
+division:
+        value DEVIDE operation
+        {
+                cout << $1 << " Division " <<  $3 << endl;
         }
         ;
 		
@@ -100,9 +160,17 @@ list:
 		DIGIT
 		
 		
-end:
+value:
+        DIGIT
+		|
+		STRING
+		|
+		VARIABLE
+		
+program_end:
         END
         {
                 cout << "End of the program" << endl;
         }
         ;
+%%

@@ -52,17 +52,21 @@ extern int yydebug;
      LISTVARIABLE = 261,
      TYPE = 262,
      CODEBEGIN = 263,
-     OPERATOR = 264,
-     END = 265,
-     PRINT = 266,
-     OUTPUT = 267,
-     COLON = 268,
-     COMMA = 269,
-     SEMICOLON = 270,
-     OPAREN = 271,
-     CPAREN = 272,
-     DIGIT = 273,
-     STRING = 274
+     PLUS = 264,
+     MINUS = 265,
+     DEVIDE = 266,
+     MULTIPLY = 267,
+     EQUAL = 268,
+     END = 269,
+     PRINT = 270,
+     OUTPUT = 271,
+     COLON = 272,
+     COMMA = 273,
+     SEMICOLON = 274,
+     OPAREN = 275,
+     CPAREN = 276,
+     DIGIT = 277,
+     STRING = 278
    };
 #endif
 
