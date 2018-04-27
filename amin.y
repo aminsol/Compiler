@@ -61,8 +61,6 @@ command:
 		program_end
 		| 
 		program_begin
-        | 
-		
         ;
 		
 variablelist:
