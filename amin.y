@@ -136,6 +136,7 @@ void addSpaceToken(string & str)
 }
 
 /*-------------------Function for Part One-------------------*/
+
 void partOne(string filename)
 {
 	ifstream infile;
@@ -177,7 +178,7 @@ void partOne(string filename)
 }
 
 /*------------------------END PART ONE-----------------------*/
-  
+ofstream output;
 int main(int argc, char *argv[]) {
 	FILE *yyout;
 	if (argc == 1) {
@@ -186,9 +187,9 @@ int main(int argc, char *argv[]) {
 	else if(argc == 2){
 		partOne(argv[1]);
 		yyin = fopen("final2.txt", "r");
-		yyout = fopen("out.cpp","w");
 		yyparse();
-		fclose(yyout);
+		output << "return 0; \n}" << endl;
+		output.close();
 	}
 } 
 
@@ -203,11 +204,19 @@ int main(int argc, char *argv[]) {
 commands: /* empty */
 		| commands command
         ;
-
 command:
+        program_start SEMICOLON{
+			output.open($1);
+			output << "#include <iostream>" << endl;
+			output << "using namespace std;" << endl;
+			output << "int main()\n{" << endl;
+		}
+		|
 		realcode SEMICOLON{
 			if($1 != ""){
 				cout << $1  << ";"<< endl;
+				output << $1  << ";"<< endl;
+				//fprintf(yyout, "%s;\n", $1);
 			}
 		}
 		| 
@@ -218,8 +227,6 @@ command:
 		
 realcode:
 	    variable_define
-        |
-        program_start
         |
         operation
         |
@@ -238,7 +245,7 @@ variablelist:
 
 program_start:
         PROGRAM VARIABLE{
-				$$ = "";
+				$$ = $2 + ".cpp";
                 cout << "Info: Program Name is: " << $2 << endl;
         }
         ;

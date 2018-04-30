@@ -16,7 +16,7 @@ string only_string(char* input){
 %%
 PROGRAM										return PROGRAM;
 VAR													return VARKEYWORD;
-INTEGER										yylval = yytext; return TYPE;
+INTEGER										yylval = "int"; return TYPE;
 BEGIN												return CODEBEGIN;
 END\.												return END;
 PRINT												return PRINT;
