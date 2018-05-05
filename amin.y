@@ -219,6 +219,12 @@ command:
 				//fprintf(yyout, "%s;\n", $1);
 			}
 		}
+		|
+		realcode{
+			if($1 != ""){
+				yyerror("missing SEMICOLON");
+			}
+		}
 		| 
 		program_end
 		| 
