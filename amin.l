@@ -6,6 +6,8 @@
 #include "amin.tab.h"
 using namespace std;
 
+
+
 string only_string(char* input){
 	string s(input);
 	
@@ -17,9 +19,11 @@ string only_string(char* input){
 PROGRAM										return PROGRAM;
 VAR													return VARKEYWORD;
 INTEGER										yylval = "int"; return TYPE;
-BEGIN												return CODEBEGIN;
-END\.												return END;
+BEGIN 												return CODEBEGIN;
+END												return END;
 PRINT												return PRINT;
+
+
 \+														return PLUS;
 \-														return MINUS;
 \/														return DEVIDE;
@@ -30,8 +34,13 @@ PRINT												return PRINT;
 ,														return COMMA;
 \(														return OPAREN;
 \)														return CPAREN;
-[A-Za-z][A-Za-z0-9]*					yylval = yytext; return VARIABLE;
+\.														return PERIOD;
+
+												
+[A-Za-z][A-Za-z0-9]*												yylval = yytext; return VARIABLE;
+
 [0-9]+												yylval = yytext; return DIGIT;
+
 \‘[^\‘\’]*\’										yylval = only_string(yytext); return STRING;
 \n 													/* ignore end of line */;
 [ \t]+													/* ignore whitespace */;

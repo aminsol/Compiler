@@ -22,7 +22,7 @@ void yyerror(const char *str)
 int yywrap()
 {
         return 1;
-} 
+}  
 
 
 /*--------------------------PART ONE-------------------------*/
@@ -179,6 +179,13 @@ void partOne(string filename)
 
 /*------------------------END PART ONE-----------------------*/
 ofstream output;
+int PROGRAMflag = 0;
+int UNKNOWNIDEN ; 
+int VARKEYflag=0;
+int BEGINflag=0;
+int ENDflag=0;
+
+
 int main(int argc, char *argv[]) {
 	FILE *yyout;
 	if (argc == 1) {
@@ -197,15 +204,19 @@ int main(int argc, char *argv[]) {
 
 %token PROGRAM VARIABLE VARKEYWORD LISTVARIABLE TYPE CODEBEGIN  
 %token PLUS MINUS DEVIDE MULTIPLY EQUAL
-%token END PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING
+%token END PERIOD PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING
 
 %%
 
+
+	
 commands: /* empty */
 		| commands command
         ;
 command:
-        program_start SEMICOLON{
+	
+        program_name SEMICOLON{
+			PROGRAMflag = 1;
 			output.open($1);
 			output << "#include <iostream>" << endl;
 			output << "using namespace std;" << endl;
@@ -214,26 +225,38 @@ command:
 		|
 		realcode SEMICOLON{
 			if($1 != ""){
-				cout << $1  << ";"<< endl;
-				output << $1  << ";"<< endl;
+				if(PROGRAMflag == 0){ 
+					yyerror("PROGRAM is expected.");
+				}
+				
+				else 
+				{ 
+					cout << $1  << ";"<< endl;
+					output << $1  << ";"<< endl;
+				}
+				
 				//fprintf(yyout, "%s;\n", $1);
 			}
 		}
 		|
 		realcode{
 			if($1 != ""){
-				yyerror("missing SEMICOLON");
+				yyerror("; is missing.");
 			}
+			
+
 		}
+		| variable_define SEMICOLON
 		| 
+		program_name { yyerror ("; is missing.");}
+		|
 		program_end
-		| 
+		|  
 		program_begin
         ;
 		
 realcode:
-	    variable_define
-        |
+	
         operation
         |
 		equal
@@ -247,20 +270,32 @@ variablelist:
 		}
         |
         VARIABLE
+	| VARIABLE variablelist { yyerror(", is missing.");}
+
         ;
 
-program_start:
+program_name:
         PROGRAM VARIABLE{
 				$$ = $2 + ".cpp";
                 cout << "Info: Program Name is: " << $2 << endl;
+		cout << "<pname> --> " << $2 << endl;
         }
+	
+	
+	
         ;
 
 variable_define:
         VARKEYWORD variablelist COLON type{
 				$$ = $4 + " " + $2;
                 cout << "Info: Variables defined " << $1 << endl;
+		VARKEYflag = 1;
+		if(BEGINflag=0){cout<< "BEGIN is missing."<<endl;}
+		ENDflag=0;
+		
         }
+	| error variablelist COLON type{ if(VARKEYflag==0) { cout<< "VAR is expected."<<endl;} }
+	
         ;
 type:
 	TYPE{
@@ -268,13 +303,19 @@ type:
 	}
 		
 program_begin:
-        CODEBEGIN{
-                cout << "Info: Program begins" << endl;
+        CODEBEGIN {
+		
+		BEGINflag = 1;
+                cout << "Info: Program begins" << endl;	
+		ENDflag =0;
+		
         }
+
         ;	
 		
-operation:
-        addition
+operation: 
+        
+	addition
 		|
 		division
 		|
@@ -288,35 +329,39 @@ operation:
 equal:
         VARIABLE EQUAL operation{
 			$$ = $1 + " = " + $3;
-			cout << "Info: " << $1 << " Equal to " <<  $3 << endl;
+			cout << "Info: " << $1 << " = " <<  $3 << endl;
+			
 		}
+	
+	
+		
         ;
 	
 addition:
         value PLUS operation{
 				$$ = $1 + " + " + $3;
-                cout << "Info: " << $1 << " Addition " <<  $3 << endl;
+                cout << "Info: " << $1 << " + " <<  $3 << endl;
         }
         ;
 		
 subtraction:
         value MINUS operation{
 				$$ = $1 + " - " + $3;
-                cout << "Info: " << $1 << " Subtraction " <<  $3 << endl;
+                cout << "Info: " << $1 << " - " <<  $3 << endl;
         }
         ;
 		
 multiplication:
         value MULTIPLY operation{
 				$$ = $1 + " * " + $3;
-                cout << "Info: " << $1 << " Multiplication " << $3 << endl;
+                cout << "Info: " << $1 << " * " << $3 << endl;
         }
         ;
 		
 division:
         value DEVIDE operation{
 				$$ = $1 + " / " + $3;
-                cout << "Info: " << $1 << " Division " <<  $3 << endl;
+                cout << "Info: " << $1 << " / " <<  $3 << endl;
         }
         ;
 		
@@ -325,6 +370,9 @@ print:
 				$$ = "cout" + $3;
                 cout << "Info: " << "Printing output" << endl;
         }
+	| PRINT list CPAREN { yyerror("( is missing.");		}
+	| PRINT OPAREN list { yyerror(" ) is missing.");}
+	
         ;
 
 		
@@ -364,9 +412,23 @@ value:
 		|
 		VARIABLE
 		
-program_end:
-        END{
-                cout << "End of the program" << endl;
+program_end :
+        END PERIOD{
+				if ( BEGINflag ==1){
+					cout << "End of the program" << endl;
+				}
+			
+				else{
+					yyerror("BEGIN is missing");
+				}
+				ENDflag =0;
         }
+		|
+		END {
+			yyerror(". is missing");
+		}
+		
         ;
+
 %%
+
