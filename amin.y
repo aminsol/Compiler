@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <cctype>
 #include <algorithm>
+#include <vector>
 
 #define YYSTYPE string
 using namespace std;
@@ -178,12 +179,40 @@ void partOne(string filename)
 }
 
 /*------------------------END PART ONE-----------------------*/
+/*-----------------------------------------------------------------*/
+string& trim(std::string& s, const char* t = " \t\n\r\f\v")
+{
+	s.erase(0, s.find_first_not_of(t));
+	s.erase(s.find_last_not_of(t) + 1);
+	return s;
+}
+
+void split(const string& s, char delim, vector<string>& v) {
+    auto i = 0;
+    auto pos = s.find(delim);
+	string var;
+    while (pos != string::npos) {
+		var = trim(s.substr(i, pos-i));
+		v.push_back(var);
+		i = ++pos;
+		pos = s.find(delim, pos);
+
+      if (pos == string::npos){
+			var = trim(s.substr(i, s.length()));
+			v.push_back(var);
+	  }
+    }
+}
+/*-----------------------------------------------------------------*/
 ofstream output;
 int PROGRAMflag = 0;
 int UNKNOWNIDEN ; 
 int VARKEYflag=0;
 int BEGINflag=0;
 int ENDflag=0;
+bool UNKNOWNflag = false;
+bool ERROR = false;
+vector<string> vars;
 
 
 int main(int argc, char *argv[]) {
@@ -197,6 +226,12 @@ int main(int argc, char *argv[]) {
 		yyparse();
 		output << "return 0; \n}" << endl;
 		output.close();
+		if (ERROR){
+			cout << "********Program is NOT accepted!!!********" << endl;
+		}
+		else{
+			cout << "********Program is accepted :)********" << endl;
+		}
 	}
 	return 0;
 } 
@@ -228,6 +263,7 @@ command:
 			if($1 != ""){
 				if(PROGRAMflag == 0){ 
 					yyerror("PROGRAM is expected.");
+					ERROR = true;
 				}
 				
 				else 
@@ -243,13 +279,12 @@ command:
 		realcode{
 			if($1 != ""){
 				yyerror("; is missing.");
+		ERROR = true;
 			}
-			
-
 		}
-		| variable_define SEMICOLON
 		| 
-		program_name { yyerror ("; is missing.");}
+		program_name { yyerror ("; is missing.");
+		ERROR = true;}
 		|
 		program_end 
 		|  
@@ -257,7 +292,8 @@ command:
         ;
 		
 realcode:
-	
+		variable_define
+		|
         operation
         |
 		equal
@@ -266,51 +302,50 @@ realcode:
 		;
 		
 variablelist:
-        VARIABLE COMMA variablelist{
+        variable COMMA variablelist{
 			$$ = $1 + ", " + $3;
 		}
         |
-        VARIABLE
-	| VARIABLE variablelist { yyerror(", is missing.");}
-	| COMMA variablelist {yyerror("UNKNOWN IDENTIFIER");}
+        variable
+	| 
+	variable variablelist { yyerror(", is missing.");
+		ERROR = true;}
 
         ;
 
 program_name:
         PROGRAM VARIABLE{
 				$$ = $2 + ".cpp";
-                cout << "Info: Program Name is: " << $2 << endl;
 		
         }
-	| PROGRAM {yyerror("UNKNOWN IDENTIFIER.");}
-	
-	
-	
         ;
 
 variable_define:
         VARKEYWORD variablelist COLON type{
 				$$ = $4 + " " + $2;
-                cout << "Info: Variables defined " << $1 << endl;
-		VARKEYflag = 1;
-		if(BEGINflag=0){cout<< "BEGIN is missing."<<endl;}
-		ENDflag=0;
-		
+				string s($2);
+				split(s,',', vars );
+			VARKEYflag = 1;
+			if(BEGINflag=0){cout<< "BEGIN is missing."<<endl;}
+			ENDflag=0;
         }
-	| error variablelist COLON type{ if(VARKEYflag==0) { cout<< "VAR is expected."<<endl;} }
+	| 
+	variablelist COLON type{ 
+		if(VARKEYflag==0) { 
+			cout<< "VAR is expected." << endl;
+		} 
+	}
 	
         ;
 type:
 	TYPE{
 		$$ = $1;
 	}
-	| {yyerror("UNKNOWN IDENTIFIER");}
-		
+	;	
 program_begin:
         CODEBEGIN {
 		
 		BEGINflag = 1;
-                cout << "Info: Program begins" << endl;	
 		ENDflag =0;
 		
         }
@@ -331,89 +366,83 @@ operation:
         ;
 	
 equal:
-        VARIABLE EQUAL operation{
+        variable EQUAL operation{
 			$$ = $1 + " = " + $3;
-			cout << "Info: " << $1 << " = " <<  $3 << endl;
 			
 		}
 	
-	| VARIABLE operation { yyerror("= is missing.");}
-	| EQUAL operation { yyerror("UNKNOWN IDENTIFIER");}	
+	| variable operation { yyerror("= is missing.");
+		ERROR = true;}	
         ;
 	
 addition:
         value PLUS operation{
 				$$ = $1 + " + " + $3;
-                cout << "Info: " << $1 << " + " <<  $3 << endl;
         }
         ;
 		
 subtraction:
         value MINUS operation{
 				$$ = $1 + " - " + $3;
-                cout << "Info: " << $1 << " - " <<  $3 << endl;
         }
         ;
 		
 multiplication:
         value MULTIPLY operation{
 				$$ = $1 + " * " + $3;
-                cout << "Info: " << $1 << " * " << $3 << endl;
         }
         ;
 		
 division:
         value DEVIDE operation{
 				$$ = $1 + " / " + $3;
-                cout << "Info: " << $1 << " / " <<  $3 << endl;
         }
         ;
 		
 print:
         PRINT OPAREN  list CPAREN {
 				$$ = "cout" + $3;
-                cout << "Info: " << "Printing output" << endl;
         }
-	| PRINT list CPAREN { yyerror("( is missing.");		}
-	| PRINT OPAREN list { yyerror(" ) is missing.");}
+	| PRINT list CPAREN { yyerror("( is missing.");
+		ERROR = true;		}
+	| PRINT OPAREN list { yyerror(" ) is missing.");
+		ERROR = true;}
 	
         ;
 
 		
 list:
-        VARIABLE COMMA list{
+        variable COMMA list{
 			$$ = " <<  " + $1 + $3;
 		}
 		|
 		string COMMA list{
-			$$ = " << \'" + $1 + "\'" + $3;
+			$$ = " << \"" + $1 + "\"" + $3;
 		}
 		|
 		DIGIT COMMA list{
 			$$ = " << " + $1 + $3;
 		}
 		|
-		VARIABLE{
-			cout << "print VAR" << endl;
+		variable{
 			$$ = " << " + $1;
 		}
 		|
 		string{
-			cout << "print STRING" << endl;
 			$$ = " << \"" + $1 + "\"";
 		}
 
 
 		|
 		DIGIT{
-			cout << "print DIGIT"  << endl;
 			$$ = " << " + $1;
 		}
-		| VARIABLE list {yyerror(", is missing.");}
-		| STRING list {yyerror(", is missing.");}
-		| DIGIT list {yyerror(", is missing.");}
-
-		| COMMA list {yyerror("UNKNOWN IDENTIFIER.");}
+		| variable list {yyerror(", is missing.");
+		ERROR = true;}
+		| STRING list {yyerror(", is missing.");
+		ERROR = true;}
+		| DIGIT list {yyerror(", is missing.");
+		ERROR = true;}
 		;
 		
 
@@ -422,7 +451,7 @@ value:
 		|
 		string
 		|
-		VARIABLE
+		variable
 		;
 		
 string:
@@ -430,10 +459,12 @@ string:
 		|
 		MISQL{
 			yyerror("Missing left `");
+		ERROR = true;
 		}
 		|
 		MISQR{
 			yyerror("Missing right `");
+		ERROR = true;
 		}
 		;
 		
@@ -445,16 +476,38 @@ program_end :
 			
 				else{
 					yyerror("BEGIN is missing");
+		ERROR = true;
 				}
 				ENDflag =0;
         }
 		|
 		END  {
 			yyerror(". is missing");
+		ERROR = true;
 		}
-		| PERIOD { yyerror("END is expected.");}
-		
+		| PERIOD { yyerror("END is expected.");
+		ERROR = true;
+		}
         ;
+variable:
+	VARIABLE{
+		string s($1);
+		split(s, ',', vars);
+		for(vector<string>::iterator it = vars.begin(); it != vars.end(); ++it) {
+			if( *it != s){
+				UNKNOWNflag = true;
+			}
+			else{
+				UNKNOWNflag = false;
+				break;
+			}
+		}
+		if (UNKNOWNflag){
+			string err = "Unknown identifier " + $1 + " !";
+			yyerror(err.c_str());
+			ERROR = true;
+		}
+	}
 
 %%
 
