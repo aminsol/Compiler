@@ -10,7 +10,7 @@ g++ .\aba13.cpp -o output.exe
 
 ## Authors
 
-Amin Soltani
-Xuan Do
-Kader Ustun
-Pooja Gajjar
+*	Amin Soltani
+*	Xuan Do
+*	Kader Ustun
+*	Pooja Gajjar
