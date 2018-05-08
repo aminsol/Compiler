@@ -19,7 +19,7 @@ string only_string(char* input){
 PROGRAM										return PROGRAM;
 VAR													return VARKEYWORD;
 INTEGER										yylval = "int"; return TYPE;
-BEGIN 												return CODEBEGIN;
+BEGIN 											return CODEBEGIN;
 END												return END;
 PRINT												return PRINT;
 
@@ -35,16 +35,16 @@ PRINT												return PRINT;
 \(														return OPAREN;
 \)														return CPAREN;
 \.														return PERIOD;
-\‘														return LQUOTATION;
-\’														return RQUOTATION;
-												
-[A-Za-z][A-Za-z0-9]*												yylval = yytext; return VARIABLE;
+
+[A-Za-z][A-Za-z0-9]*					yylval = yytext; return VARIABLE;
 
 [0-9]+												yylval = yytext; return DIGIT;
 
-\‘[^\’]*\’										yylval = only_string(yytext); return STRING;
+\‘[^\’]*\’											yylval = only_string(yytext); return STRING;
+\‘[^\’]*												return MISQR;
+[^\’]*\’												return MISQL;
 \n 													/* ignore end of line */;
-[ \t]+													/* ignore whitespace */;
+[ \t]+												/* ignore whitespace */;
 %%
 
 int yywrap(){

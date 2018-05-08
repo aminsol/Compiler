@@ -65,7 +65,7 @@ string removeComments(const string& str)
 		else if (comment)
 			continue;
 
-		// Check for beginning of comments and set the approproate flags
+		// Check for beginning of comments and set the appropriate flags
 		else if (str[i] == '(' && str[i + 1] == '*')
 		{
 			comment = true;
@@ -205,7 +205,7 @@ int main(int argc, char *argv[]) {
 
 %token PROGRAM VARIABLE VARKEYWORD LISTVARIABLE TYPE CODEBEGIN  
 %token PLUS MINUS DEVIDE MULTIPLY EQUAL
-%token END PERIOD PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING LQUOTATION RQUOTATION
+%token END PERIOD PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING MISQL MISQR
 
 %%
 
@@ -385,7 +385,7 @@ list:
 			$$ = " <<  " + $1 + $3;
 		}
 		|
-		STRING COMMA list{
+		string COMMA list{
 			$$ = " << \'" + $1 + "\'" + $3;
 		}
 		|
@@ -398,7 +398,7 @@ list:
 			$$ = " << " + $1;
 		}
 		|
-		STRING{
+		string{
 			cout << "print STRING" << endl;
 			$$ = " << \"" + $1 + "\"";
 		}
@@ -420,9 +420,22 @@ list:
 value:
         DIGIT
 		|
-		STRING
+		string
 		|
 		VARIABLE
+		;
+		
+string:
+		STRING
+		|
+		MISQL{
+			yyerror("Missing left `");
+		}
+		|
+		MISQR{
+			yyerror("Missing right `");
+		}
+		;
 		
 program_end :
         END PERIOD{
