@@ -35,13 +35,14 @@ PRINT												return PRINT;
 \(														return OPAREN;
 \)														return CPAREN;
 \.														return PERIOD;
-
+\‘														return LQUOTATION;
+\’														return RQUOTATION;
 												
 [A-Za-z][A-Za-z0-9]*												yylval = yytext; return VARIABLE;
 
 [0-9]+												yylval = yytext; return DIGIT;
 
-\‘[^\‘\’]*\’										yylval = only_string(yytext); return STRING;
+\‘[^\’]*\’										yylval = only_string(yytext); return STRING;
 \n 													/* ignore end of line */;
 [ \t]+													/* ignore whitespace */;
 %%

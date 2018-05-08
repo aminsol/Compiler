@@ -198,13 +198,14 @@ int main(int argc, char *argv[]) {
 		output << "return 0; \n}" << endl;
 		output.close();
 	}
+	return 0;
 } 
 
 %}
 
 %token PROGRAM VARIABLE VARKEYWORD LISTVARIABLE TYPE CODEBEGIN  
 %token PLUS MINUS DEVIDE MULTIPLY EQUAL
-%token END PERIOD PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING
+%token END PERIOD PRINT OUTPUT COLON COMMA SEMICOLON OPAREN CPAREN DIGIT STRING LQUOTATION RQUOTATION
 
 %%
 
@@ -250,7 +251,7 @@ command:
 		| 
 		program_name { yyerror ("; is missing.");}
 		|
-		program_end
+		program_end 
 		|  
 		program_begin
         ;
@@ -271,6 +272,7 @@ variablelist:
         |
         VARIABLE
 	| VARIABLE variablelist { yyerror(", is missing.");}
+	| COMMA variablelist {yyerror("UNKNOWN IDENTIFIER");}
 
         ;
 
@@ -278,8 +280,9 @@ program_name:
         PROGRAM VARIABLE{
 				$$ = $2 + ".cpp";
                 cout << "Info: Program Name is: " << $2 << endl;
-		cout << "<pname> --> " << $2 << endl;
+		
         }
+	| PROGRAM {yyerror("UNKNOWN IDENTIFIER.");}
 	
 	
 	
@@ -301,6 +304,7 @@ type:
 	TYPE{
 		$$ = $1;
 	}
+	| {yyerror("UNKNOWN IDENTIFIER");}
 		
 program_begin:
         CODEBEGIN {
@@ -333,8 +337,8 @@ equal:
 			
 		}
 	
-	
-		
+	| VARIABLE operation { yyerror("= is missing.");}
+	| EQUAL operation { yyerror("UNKNOWN IDENTIFIER");}	
         ;
 	
 addition:
@@ -366,7 +370,7 @@ division:
         ;
 		
 print:
-        PRINT OPAREN list CPAREN{
+        PRINT OPAREN  list CPAREN {
 				$$ = "cout" + $3;
                 cout << "Info: " << "Printing output" << endl;
         }
@@ -378,11 +382,11 @@ print:
 		
 list:
         VARIABLE COMMA list{
-			$$ = " << " + $1 + $3;
+			$$ = " <<  " + $1 + $3;
 		}
 		|
 		STRING COMMA list{
-			$$ = " << \"" + $1 + "\"" + $3;
+			$$ = " << \'" + $1 + "\'" + $3;
 		}
 		|
 		DIGIT COMMA list{
@@ -398,13 +402,21 @@ list:
 			cout << "print STRING" << endl;
 			$$ = " << \"" + $1 + "\"";
 		}
+
+
 		|
 		DIGIT{
 			cout << "print DIGIT"  << endl;
 			$$ = " << " + $1;
 		}
+		| VARIABLE list {yyerror(", is missing.");}
+		| STRING list {yyerror(", is missing.");}
+		| DIGIT list {yyerror(", is missing.");}
+
+		| COMMA list {yyerror("UNKNOWN IDENTIFIER.");}
+		;
 		
-		
+
 value:
         DIGIT
 		|
@@ -424,9 +436,10 @@ program_end :
 				ENDflag =0;
         }
 		|
-		END {
+		END  {
 			yyerror(". is missing");
 		}
+		| PERIOD { yyerror("END is expected.");}
 		
         ;
 
