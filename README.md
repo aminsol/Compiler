@@ -12,5 +12,5 @@ g++ .\aba13.cpp -o output.exe
 
 Amin Soltani
 Xuan Do
-Kader Ustun	
+Kader Ustun
 Pooja Gajjar
