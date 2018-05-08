@@ -6,5 +6,5 @@ Working example of LEX and YACC based on our assignment!
 ``` 
 .\build.bat
 g++ .\aba13.cpp -o output.exe
-.\out.exe
+.\output.exe
 ```
